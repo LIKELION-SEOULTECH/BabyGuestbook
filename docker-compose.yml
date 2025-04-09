@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: guest-book-db
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: guest-book
+      TZ: Asia/Seoul
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - guestbook-network
+
+  ai-server:
+    image: dddododo/emotion1
+    container_name: guest-book-ai
+    ports:
+      - "8000:8000"
+    networks:
+      - guestbook-network
+
+  server:
+    image: maruhan/guest-book:latest
+    container_name: guest-book-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+      - ai-server
+    restart: always
+    networks:
+      - guestbook-network
+
+  frontend:
+    image: limdh0827/babyguestbook-front
+    container_name: babyguestbook-front
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+    depends_on:
+      - server
+    networks:
+      - guestbook-network
+
+volumes:
+  mysql_data:
+
+networks:
+  guestbook-network:
